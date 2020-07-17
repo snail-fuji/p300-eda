@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+    notebook:
+        build: .
+        network_mode: host
+        volumes:
+            - ./data:/tmp
+            - ./notebooks:/var/lib/p300/notebooks
+        command: python -m jupyter notebook --allow-root 

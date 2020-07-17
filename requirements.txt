@@ -1,0 +1,9 @@
+mne==0.16.2
+scikit-learn==0.20.3
+plotly==4.4.1
+matplotlib==2.0.0
+jupyter==1.0.0
+pandas==0.24.2
+numpy==1.17.0
+scipy==1.1.0
+tqdm==4.23.4
