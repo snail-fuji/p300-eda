@@ -1,2 +1,3 @@
 data/*.mat
 .ipynb_checkpoints
+__pycache__
