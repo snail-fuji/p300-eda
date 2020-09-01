@@ -76,6 +76,10 @@ def reject_bad_events(raw, events, channels=len(CHANNELS), duration=len(TIME)):
     and then filters out those events which have mean > total_mean +- std
     at least for one channel
     """
+    
+    # TODO fix
+    channels = raw.info["nchan"]
+    
     new_events = []
     
     # Fix bad events
@@ -149,7 +153,7 @@ def get_epochs(raw, events):
     return epochs
 
 
-def process_signal(session_df, start=30, stop=50, events_column="Trigger"):
+def process_raw_signal(raw, start=30, stop=50, events_column="Trigger", draw=False):
     """
     Perform signal processing for a given dataframe:
     - Convert to Raw instance
@@ -161,21 +165,33 @@ def process_signal(session_df, start=30, stop=50, events_column="Trigger"):
     The events will be taken from specified column
     """
     
-    raw = restore_raw(session_df, events_column=events_column)
-    
     events = get_events(raw, events_column=events_column)
     
-    plot_raw(raw, start=start, stop=stop)
+    if draw:
+        plot_raw(raw, start=start, stop=stop)
     
     filter_signal(raw)
-    plot_raw(raw, start=start, stop=stop)
+    
+    if draw:
+        plot_raw(raw, start=start, stop=stop)
     
 #     raw = scale_signal(raw, events, session_df)
 #     plot_raw(raw, scale=10, start=start, stop=stop)
     
-    events = reject_bad_events(raw, events)
-    
-    epochs = get_epochs(raw, events)    
-    plot_p300(epochs)
+#     events = reject_bad_events(raw, events)
 
+    assert events.shape[0] > 0, "Events are empty"
+    
+    epochs = get_epochs(raw, events)
+    
+    if draw:
+        plot_p300(epochs)
+        
+    return epochs
+
+
+def process_signal(session_df, start=30, stop=50, events_column="Trigger", draw=True):
+    raw = restore_raw(session_df, events_column=events_column)
+    epochs = process_raw_signal(raw, start, stop, events_column, draw)
+    
     return epochs

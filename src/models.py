@@ -1,12 +1,19 @@
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
+import joblib
+
+import json
+
+import numpy as np
+
+
 # # TODO should be refactored
 
-def get_dataset(i):
+def get_dataset(epochs):
     """
     Prepare dataset for the classification using signal features
     - Decimate epochs
     - Reshape to use the signal in sklearn Estimator
     """
-    epochs = process_signal(i)
     epochs = epochs.decimate(12)
     
     events_X = epochs.get_data()
@@ -15,6 +22,51 @@ def get_dataset(i):
     events_y = epochs.events.T[-1]
     
     return np.vstack(events_X), (events_y == 1).astype(int)
+
+
+class P300ClassifierLDA():
+    packages = None
+    channels = None
+    sfreq = None
+    
+    def __init__(self):
+        self.model = LDA()
+        
+    def fit(self, epochs, copy=True):
+        if copy:
+            epochs = epochs.copy()
+        self.packages = epochs.get_data().shape[-1]
+        self.channels = epochs.ch_names
+        self.sfreq = epochs.info["sfreq"]
+        X, y = get_dataset(epochs)
+        self.model.fit(X, y)
+    
+    def predict(self, epochs, copy=True):
+        if copy:
+            epochs = epochs.copy()
+        
+        assert epochs.get_data().shape[-1] == self.packages
+        print(epochs.ch_names, self.channels)
+        assert all([a == b for a, b in zip(epochs.ch_names, self.channels)])
+        assert epochs.info["sfreq"] == self.sfreq
+        X, y = get_dataset(epochs)
+        return self.model.predict_proba(X).T[1], y
+    
+    def save(self, directory):
+        configuration = {
+            "channels": self.channels,
+            "packages": self.packages,
+            "sfreq": self.sfreq
+        }
+        json.dump(configuration, open(directory + "/conf.json", "w"))
+        joblib.dump(self.model, directory + "/model.pkl")
+    
+    def load(self, directory):
+        configuration = json.load(open(directory + "/conf.json"))
+        self.channels = configuration["channels"]
+        self.packages = configuration["packages"]
+        self.sfreq = configuration["sfreq"]
+        self.model = joblib.load(directory + "/model.pkl")
 
 
 def get_scores(events_X, events_y, window_size=15):

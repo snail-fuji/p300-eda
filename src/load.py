@@ -43,14 +43,13 @@ def convert_bci_iii_file(subject):
 
     channels = np.vstack(session['Signal']).swapaxes(0, 1)
     
-    trigger = np.hstack(session["StimulusCode"])
+    trigger = np.hstack(session["Flashing"])
     
     # TODO check if it is nessesary to store information about StimulusType
-#     stimulus_type = np.hstack(session['StimulusType'])
+    stimulus_type = np.hstack(session['StimulusType'])
     
-#     trigger[trigger == -0] = 0
-#     trigger[(trigger > 0) & (stimulus_type == 0)] -= 2
-    # TODO Read channels from a separate file
+    trigger[(trigger > 0) & (stimulus_type == 0)] -= 2
+#     TODO Read channels from a separate file
     
     inputs, times, _ = session["Signal"].shape
     input_index = np.hstack(np.array([range(0, inputs)] * times).T)
