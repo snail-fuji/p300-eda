@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 
 from config import *
+from utils import get_row_column_for_character
 
 
 def convert_file(subject):
@@ -28,6 +29,20 @@ def convert_file(subject):
     return converted_session
 
 
+def add_test_labels(session):
+    test_labels = 'WQXPLZCOMRKO97YFZDEZ1DPI9NNVGRQDJCUVRMEUOOOJD2UFYPOO6J7LDGYEGOA5VHNEHBTXOO1TDOILUEE5BFAEEXAW_K4R3MRU'
+    stimulus_type = []
+    
+    for index, label in enumerate(test_labels):
+        column_row = get_row_column_for_character(label)
+        
+        label_stimulus = [code in column_row for code in session["StimulusCode"][index]]
+        stimulus_type.append(label_stimulus)
+    
+    session['StimulusType'] = stimulus_type
+    session['TargetChar'] = [test_labels]
+
+
 def convert_bci_iii_file(subject):
     """
     Load sessions information for Subject_{Subject}_{Dataset}
@@ -48,6 +63,9 @@ def convert_bci_iii_file(subject):
     code = np.hstack(session["StimulusCode"])
     
     # TODO check if it is nessesary to store information about StimulusType
+    if 'StimulusType' not in session:
+        add_test_labels(session)
+    
     stimulus_type = np.hstack(session['StimulusType'])
     
     trigger[(trigger > 0) & (stimulus_type == 0)] -= 2

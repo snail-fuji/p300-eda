@@ -8,6 +8,16 @@ import numpy as np
 # -
 
 # Configuration for BCI III dataset
+
+CHARACTER_MATRIX = """
+ABCDEF
+GHIJKL
+MNOPQR
+STUVWX
+YZ1234
+56789_
+""".strip().split("\n")
+
 FREQUENCY = 240
 CHANNELS = [
     "Fc5", "Fc3", "Fc1", "Fcz", "Fc2", "Fc4", "Fc6", 
