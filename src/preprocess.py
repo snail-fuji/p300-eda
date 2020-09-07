@@ -32,7 +32,7 @@ def filter_signal(raw):
     Perform bandpass filtering of trend and high frequencies (0.5-30 Hz) 
     """
     raw.notch_filter(50)
-    raw.filter(0.5, 30)
+    raw.filter(0.5, 10)
 
 
 def get_events(raw, min_duration=len(TIME), events_column="Trigger"):

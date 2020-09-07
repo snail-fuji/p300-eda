@@ -45,6 +45,8 @@ def convert_bci_iii_file(subject):
     
     trigger = np.hstack(session["Flashing"])
     
+    code = np.hstack(session["StimulusCode"])
+    
     # TODO check if it is nessesary to store information about StimulusType
     stimulus_type = np.hstack(session['StimulusType'])
     
@@ -61,10 +63,11 @@ def convert_bci_iii_file(subject):
         'fs': np.array([[FREQUENCY]], dtype=np.uint8),
         'trig': trigger[:, np.newaxis],
         'y': channels.T,
-        'input': input_index
+        'input': input_index,
+        'code': code,
     }
 
-    return converted_session, session['TargetChar']
+    return converted_session, session['TargetChar'][0]
 
 
 def create_df(session):
@@ -79,6 +82,7 @@ def create_df(session):
     session_df["Trigger"] = session["trig"]
     if 'input' in session:
         session_df["InputIndex"] = session['input']
+        session_df["Code"] = session["code"]
     session_df.loc[session_df["Trigger"] == -1, "Trigger"] = 2
     
     return session_df

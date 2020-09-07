@@ -5,6 +5,7 @@ services:
         build: .
         network_mode: host
         volumes:
-            - ./data:/tmp
+            - ./data:/var/lib/p300/data
             - ./notebooks:/var/lib/p300/notebooks
+            - ./src:/var/lib/p300/src
         command: python -m jupyter notebook --allow-root 

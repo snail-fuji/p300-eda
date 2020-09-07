@@ -13,6 +13,10 @@ sys.path.append("src")
 from preprocess import process_raw_signal
 from models import P300ClassifierLDA
 
+from pyfiglet import Figlet
+import os
+
+
 sfreq = BoardShim.get_sampling_rate (BoardIds.CYTON_BOARD.value)
 eeg_channels = BoardShim.get_eeg_channels (BoardIds.CYTON_BOARD.value)
 
@@ -59,6 +63,13 @@ def prepare_raw(raw, model):
     return model.predict(epoch)
 
 
+def print_prediction(figlet, prediction):
+    os.system('cls' if os.name == 'nt' else 'clear')
+    prediction_text = "{}".format(int(prediction[0] * 100))
+    text = figlet.renderText(prediction_text)     
+    print(text, end="\r")
+
+
 def main():
     parser = argparse.ArgumentParser ()
     # use docs to check which parameters are required for specific board, e.g. for Cyton - set serial port
@@ -98,6 +109,8 @@ def main():
     model = P300ClassifierLDA()
     model.load("test-model")
 
+    figlet = Figlet(font='slant')
+
     stopped = True
     raw = None
 
@@ -105,13 +118,14 @@ def main():
 
     while stopped:
         try:
+            with mne.utils.use_log_level('error'):
             # time.sleep(MICROSECONDS_BEFORE_STIMULUS / 1000)
             # show_stimulus()
             # time.sleep(MICROSECONDS_AFTER_STIMULUS / 1000)
-            data = board.get_current_board_data(SAMPLES_TOTAL) # TODO constant from model
-            raw = create_raw(data, model)
-            prediction = prepare_raw(raw, model)        
-            print("Prediction: {}".format(prediction))
+                data = board.get_current_board_data(SAMPLES_TOTAL) # TODO constant from model
+                raw = create_raw(data, model)
+                prediction = prepare_raw(raw, model)
+                print_prediction(figlet, prediction)   
         except KeyboardInterrupt:
             print("Got keyboard interrupt, stopping...")
             break
