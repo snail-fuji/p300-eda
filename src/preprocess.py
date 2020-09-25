@@ -8,13 +8,14 @@ from config import *
 from visualize import *
 
 
-def restore_raw(session_df, events_column="Trigger"):
+def restore_raw(session_df, events_column="Trigger", info=None):
     """
     Restore Raw object from dataframe with signal.
     The restored object will contain all EEG channels and one stim channel
     """
     channels = CHANNELS + [events_column]
-    info = mne.create_info(ch_names=channels, sfreq=FREQUENCY)
+    if not info:
+        info = mne.create_info(ch_names=channels, sfreq=FREQUENCY)
 
     raw = mne.io.RawArray(session_df[channels].values.T, info)
 
@@ -32,7 +33,7 @@ def filter_signal(raw):
     Perform bandpass filtering of trend and high frequencies (0.5-30 Hz) 
     """
     raw.notch_filter(50)
-    raw.filter(0.5, 10)
+    raw.filter(0.1, 10)
 
 
 def get_events(raw, min_duration=len(TIME), events_column="Trigger"):
@@ -48,24 +49,25 @@ def get_events(raw, min_duration=len(TIME), events_column="Trigger"):
     
     events = mne.find_events(raw, events_column, initial_event=True)
     
-    non_overlapping_events = [events[0]]
-    positive_events = 0
+    return events
+#     non_overlapping_events = [events[0]]
+#     positive_events = 0
     
-    for current_index, event in enumerate(events[1:]):
-        previous_event = non_overlapping_events[-1]
-        positive_events += previous_event[-1] == 1
+#     for current_index, event in enumerate(events[1:]):
+#         previous_event = non_overlapping_events[-1]
+#         positive_events += previous_event[-1] == 1
         
-        if (previous_event[-1] == 1) and (event[0] - previous_event[0] > min_duration):
-            non_overlapping_events.append(event)
+#         if (previous_event[-1] == 1) and (event[0] - previous_event[0] > min_duration):
+#             non_overlapping_events.append(event)
         
-        elif (previous_event[-1] != 1) and (event[-1] == 1) and (current_index // 2 > positive_events):
-            non_overlapping_events.pop(-1)
-            non_overlapping_events.append(event)
+#         elif (previous_event[-1] != 1) and (event[-1] == 1) and (current_index // 2 > positive_events):
+#             non_overlapping_events.pop(-1)
+#             non_overlapping_events.append(event)
         
-        elif (previous_event[-1] != 1):
-            non_overlapping_events.append(event)
+#         elif (previous_event[-1] != 1):
+#             non_overlapping_events.append(event)
         
-    return np.array(non_overlapping_events)
+#     return np.array(non_overlapping_events)
 
 
 def reject_bad_events(raw, events, channels=len(CHANNELS), duration=len(TIME)):
@@ -108,7 +110,7 @@ def reject_bad_events(raw, events, channels=len(CHANNELS), duration=len(TIME)):
     return np.array([e for i, e in enumerate(events) if i in new_events])
 
 
-def scale_signal(raw, events, session_df, events_column='Trigger'):
+def scale_signal(raw, events, events_column='Trigger'):
     """
     TODO requires additional settings for BCI III dataset
     
@@ -117,11 +119,12 @@ def scale_signal(raw, events, session_df, events_column='Trigger'):
     channels = CHANNELS + [events_column]
     
     channels_data = raw.copy().pick_types(eeg=True).get_data()
-    training_data = channels_data[:, (events[0][0] // 2):events[0][0] - 1]
+    # TODO use only data before events - not to loose info about amplitude
+#     training_data = channels_data[:, (events[0][0] // 2):events[0][0] - 1]
+    training_data = channels_data
     
-    # TODO extract from raw
-    trigger_data = session_df[events_column].values
-
+    trigger_data = raw.copy().pick_types(stim=True).get_data()[0]
+    
     scaler = StandardScaler()
     scaler.fit(training_data.T)
     scaled_channels_data = scaler.transform(channels_data.T).T
@@ -134,8 +137,8 @@ def scale_signal(raw, events, session_df, events_column='Trigger'):
     ])
     
     session_df = pd.DataFrame(new_channels_data.T, columns=channels)
-
-    return restore_raw(session_df)
+    
+    return restore_raw(session_df, info=raw.info)
 
 
 def get_epochs(raw, events):
@@ -175,7 +178,7 @@ def process_raw_signal(raw, start=30, stop=50, events_column="Trigger", draw=Fal
     if draw:
         plot_raw(raw, start=start, stop=stop)
     
-#     raw = scale_signal(raw, events, session_df)
+#     raw = scale_signal(raw, events)
 #     plot_raw(raw, scale=10, start=start, stop=stop)
     
 #     events = reject_bad_events(raw, events)

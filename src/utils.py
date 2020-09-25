@@ -13,4 +13,4 @@ def convert_sample_to_time(i):
 
 def get_row_column_for_character(c):
     index = "".join(CHARACTER_MATRIX).index(c)
-    return index // 6 + 1, index % 6 + 7
+    return index % 6 + 1, index // 6 + 7

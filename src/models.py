@@ -18,7 +18,7 @@ def get_dataset(epochs):
     - Decimate epochs
     - Reshape to use the signal in sklearn Estimator
     """
-    epochs = epochs.decimate(8)
+    epochs = epochs.decimate(12)
     
     events_X = epochs.get_data()
     events_X = events_X.reshape(events_X.shape[0], -1)
