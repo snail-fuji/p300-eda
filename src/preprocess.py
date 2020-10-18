@@ -52,21 +52,21 @@ def get_events(raw, min_duration=len(TIME), events_column="Trigger"):
     return events
 #     non_overlapping_events = [events[0]]
 #     positive_events = 0
-    
+
 #     for current_index, event in enumerate(events[1:]):
 #         previous_event = non_overlapping_events[-1]
 #         positive_events += previous_event[-1] == 1
-        
+
 #         if (previous_event[-1] == 1) and (event[0] - previous_event[0] > min_duration):
 #             non_overlapping_events.append(event)
-        
+
 #         elif (previous_event[-1] != 1) and (event[-1] == 1) and (current_index // 2 > positive_events):
 #             non_overlapping_events.pop(-1)
 #             non_overlapping_events.append(event)
-        
+
 #         elif (previous_event[-1] != 1):
 #             non_overlapping_events.append(event)
-        
+
 #     return np.array(non_overlapping_events)
 
 
